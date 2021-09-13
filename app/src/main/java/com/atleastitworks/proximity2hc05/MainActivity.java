@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -71,6 +72,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // Traemos el texto de estado
         texto_estado = (TextView) findViewById(R.id.text_estado);
@@ -235,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void sendBT ( String mensaje ) {
         if ( btSocket != null ) {
             try {
-                btSocket.getOutputStream().write(mensaje.toString().getBytes());
+                btSocket.getOutputStream().write(mensaje.getBytes());
             } catch (IOException e) {
                 Toast toast = Toast.makeText(this, "Error al enviar mensaje: "+mensaje, Toast.LENGTH_SHORT);
                 toast.show();
