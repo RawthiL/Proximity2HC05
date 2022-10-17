@@ -15,6 +15,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor mProximity = null;
     private float proximidad_act = 0;
     private float proximidad_ant = 0;
+    private float proximidad_max_value = 0;
 
     // ID del request de bluetooth
     int REQUEST_ENABLE_BT=1;
@@ -128,6 +130,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             finish();
             return;
         }
+
+        // Vamos a necesitar el rango del sensor para saber donde es cerca y lejos para el
+        proximidad_max_value = mProximity.getMaximumRange();
+        Log.i("Sensor", String.format("getMaxDelay %d uS", mProximity.getMaxDelay()));
+        Log.i("Sensor", String.format("getMinDelay %d uS", mProximity.getMinDelay()));
+        Log.i("Sensor", String.format("getName %s", mProximity.getName()));
+        Log.i("Sensor", String.format("getPower %f mA", mProximity.getPower()));
+        Log.i("Sensor", String.format("getResolution %f", mProximity.getResolution()));
+        Log.i("Sensor", String.format("getVendor %s", mProximity.getVendor()));
+        Log.i("Sensor", String.format("getVersion %s", mProximity.getVersion()));
+
+
 
 
 
@@ -205,9 +219,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                 {
                                     if(proximidad_act != proximidad_ant)
                                     {
+                                        Log.i("Bluethoot", String.format("State changed to %f", proximidad_act));
                                         // Si es menor a 1cm envio 1, sino 0
-                                        if (proximidad_act < 1.0) sendBT("1");
-                                        else sendBT("0");
+                                        if (proximidad_act < (proximidad_max_value/2)) {
+                                            sendBT("1");
+                                            Log.i("Bluethoot", "Sending 1");
+                                        }
+                                        else  {
+                                        sendBT("0");
+                                        Log.i("Bluethoot", "Sending 0");
+                                    }
 
                                         // Actualizo
                                         proximidad_ant = proximidad_act;
@@ -239,6 +260,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if ( btSocket != null ) {
             try {
                 btSocket.getOutputStream().write(mensaje.getBytes());
+                btSocket.getOutputStream().flush();
             } catch (IOException e) {
                 Toast toast = Toast.makeText(this, "Error al enviar mensaje: "+mensaje, Toast.LENGTH_SHORT);
                 toast.show();
@@ -356,6 +378,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // Checkeamos que sea el de proximidad (aunque no puede ser otro, es a modo ejemplo)
         if (sensorEvent.sensor.getType() == Sensor.TYPE_PROXIMITY)
         {
+            Log.i("SensorChanged", "Transition detected.");
             proximidad_act = sensorEvent.values[0];
         }
 
